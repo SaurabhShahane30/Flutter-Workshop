@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'app.dart';
+import 'package:first/SupabaseServices.dart';
+import 'package:first/RegisterPage.dart';
 
 class Loginpage extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -93,7 +94,11 @@ class Loginpage extends StatelessWidget {
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () async {
-                  Navigator.pushReplacementNamed(context_, "/home");
+                  await SupabaseService().loginUser(
+                    context: context_,
+                    email: _emailController.text.trim(),
+                    password: _passwordController.text.trim(),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF76ABAE),
@@ -109,7 +114,14 @@ class Loginpage extends StatelessWidget {
               ),
               SizedBox(height: 20),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                
+                  Navigator.push(
+                    context_,
+                    MaterialPageRoute(builder: (context) => RegisterScreen()),
+                  );
+
+                },
                 child: Text(
                   "Don't have an account ? Register",
                   style: TextStyle(

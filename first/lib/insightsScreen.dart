@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:first/Expense.dart';
+import 'package:first/SupabaseServices.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
@@ -25,75 +26,36 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
 //static fetch expense
+  
   Future<void> _fetchExpenses() async {
     try {
       setState(() => _isLoading = true);
+      List<Expense> expenses = await SupabaseService().fetchExpenses();
 
-      // Mock data
-      Map<String, Map<String, double>> dateCategoryTotals = {
-        '2024-02-14': {
-          'Food': 1200.0,
-          'Transport': 500.0,
-          'Entertainment': 800.0,
-          'Utilities': 2000.0,
-        },
-        '2024-02-13': {
-          'Food': 900.0,
-          'Transport': 400.0,
-          'Entertainment': 1200.0,
-          'Others': 300.0,
-        },
-        '2024-02-12': {
-          'Food': 750.0,
-          'Utilities': 1500.0,
-          'Entertainment': 600.0,
-        },
-      };
+      Map<String, Map<String, double>> dateCategoryTotals = {};
+      Set<String> uniqueDates = {};
 
-      // Extract unique dates
-      Set<String> uniqueDates = dateCategoryTotals.keys.toSet();
+      for (var expense in expenses) {
+        String expenseDate = expense.date;
+        String category = expense.category;
+        uniqueDates.add(expenseDate);
 
-      // Update state
+        dateCategoryTotals.putIfAbsent(expenseDate, () => {});
+        dateCategoryTotals[expenseDate]![category] =
+            (dateCategoryTotals[expenseDate]![category] ?? 0) + expense.amount;
+      }
+
       setState(() {
+        _expenses = expenses;
         _dateCategoryTotals = dateCategoryTotals;
         _dates = uniqueDates.toList()..sort((a, b) => b.compareTo(a));
         _isLoading = false;
       });
     } catch (e) {
-      print("Error loading mock data: $e");
+      print("Error fetching expenses: $e");
       setState(() => _isLoading = false);
     }
   }
-
-  // Future<void> _fetchExpenses() async {
-  //   try {
-  //     setState(() => _isLoading = true);
-  //     List<Expense> expenses = await SupabaseService().fetchExpenses();
-
-  //     Map<String, Map<String, double>> dateCategoryTotals = {};
-  //     Set<String> uniqueDates = {};
-
-  //     for (var expense in expenses) {
-  //       String expenseDate = expense.date;
-  //       String category = expense.category;
-  //       uniqueDates.add(expenseDate);
-
-  //       dateCategoryTotals.putIfAbsent(expenseDate, () => {});
-  //       dateCategoryTotals[expenseDate]![category] =
-  //           (dateCategoryTotals[expenseDate]![category] ?? 0) + expense.amount;
-  //     }
-
-  //     setState(() {
-  //       _expenses = expenses;
-  //       _dateCategoryTotals = dateCategoryTotals;
-  //       _dates = uniqueDates.toList()..sort((a, b) => b.compareTo(a));
-  //       _isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching expenses: $e");
-  //     setState(() => _isLoading = false);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {

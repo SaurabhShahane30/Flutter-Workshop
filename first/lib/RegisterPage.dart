@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:first/SupabaseServices.dart';
 
 class RegisterScreen extends StatelessWidget {
+  final SupabaseService supabaseService = SupabaseService();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -143,12 +145,12 @@ class RegisterScreen extends StatelessWidget {
                 // Sign Up Button
                 ElevatedButton(
                   onPressed: () async {
-                    fullName:
-                    _fullNameController.text.trim();
-                    email:
-                    _emailController.text.trim();
-                    password:
-                    _passwordController.text.trim();
+                    await supabaseService.registerUser(
+                      context: context,
+                      fullName: _fullNameController.text.trim(),
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF76ABAE),

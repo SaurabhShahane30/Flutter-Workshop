@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:first/SupabaseServices.dart';
+import 'package:intl/intl.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,24 +10,63 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    var userData = await SupabaseService().fetchUserDetails();
+    setState(() {
+      _userData = userData;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _logout() async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Logout"),
+        content: Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text("Cancel")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text("Logout", style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm) {
+      await SupabaseService().logout();
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String formattedCreatedAt = _userData?['createdAt'] != null
+        ? DateFormat.yMMMd().format(DateTime.parse(_userData!['createdAt']))
+        : "N/A";
+
+    String formattedLastLogin = _userData?['lastSignInAt'] != null
+        ? DateFormat.yMMMd().format(DateTime.parse(_userData!['lastSignInAt']))
+        : "N/A";
     return Scaffold(
       backgroundColor: Color(0xFF222831),
       appBar: AppBar(
-        title: Text(
-          "Profile",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text("Profile",
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold)),
         backgroundColor: Color(0xFF2E3B4E),
         elevation: 0,
       ),
@@ -45,15 +86,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SizedBox(height: 12),
+
+            // User Info
             Text(
-              "sagar rajak",
+              "Atharv Surve",
               style: TextStyle(
-                fontSize: 22,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+                  fontSize: 22,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4),
+            Text(
+              _userData?['email'] ?? "No Email",
+              style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w300),
             ),
             SizedBox(height: 20),
+
+            // Profile Details Card
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -61,36 +113,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
+                      color: Colors.black26,
+                      blurRadius: 5,
+                      offset: Offset(0, 3))
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Profile Details",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text("Profile Details",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                   Divider(color: Colors.grey[500], thickness: 1, endIndent: 20),
-                  Text(
-                    "Joined On: 12/05/2023",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    "Last Login: 12/05/2023",
-                    style: TextStyle(color: Colors.white70),
-                  ),
+                  Text("Joined On: $formattedCreatedAt",
+                      style: TextStyle(color: Colors.white70)),
+                  Text("Last Login: $formattedLastLogin",
+                      style: TextStyle(color: Colors.white70)),
                 ],
               ),
             ),
             SizedBox(height: 20),
+
+            // Menu Options
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,6 +147,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             SizedBox(height: 20),
+
+            // Logout Button (Standalone, Below Settings)
             Container(
               width: double.infinity,
               margin: EdgeInsets.only(top: 20),
@@ -115,9 +163,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _logout,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
@@ -129,10 +176,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text(
                   "Logout",
                   style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -150,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: Color(0xFF393E46),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
         ],
       ),
       child: Row(
